@@ -8,7 +8,8 @@ from urllib.parse import urlparse
 from http import cookiejar
 
 import requests
-from pystyle import Colorate, Colors, Write, Add, Center
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from Data.UserAgent import UserAgent
 from Data.Lists import DeviceTypes, Platforms, Channel, ApiDomain
@@ -22,12 +23,28 @@ class BlockCookies(cookiejar.CookiePolicy):
 requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 ssl._create_default_https_context = ssl._create_unverified_context
 r                                 = requests.Session()
+# Configure connection pooling and retries to reduce latency and reuse sockets
+_adapter = HTTPAdapter(
+    pool_connections=100,
+    pool_maxsize=100,
+    max_retries=Retry(
+        total=2,
+        backoff_factor=0.1,
+        status_forcelist=[429, 500, 502, 503, 504],
+        allowed_methods=None,
+    ),
+)
+r.mount("http://", _adapter)
+r.mount("https://", _adapter)
 countQueue                        = queue.Queue()
 sentRequests                      = 0
 completed                         = False
+REQUEST_TIMEOUT                   = 5
 
 r.cookies.set_policy(BlockCookies())
 def Banner():
+    # Lazy import to avoid startup overhead unless actually needed
+    from pystyle import Colorate, Colors, Write, Add, Center
     clearConsole()
     Banner1 = r"""
 ╔╦╗  ╦  ╦╔═  ╔═╗  ╦ ╦  ╔═╗  ╦═╗  ╔═╗
@@ -51,7 +68,9 @@ def Banner():
     print(Center.XCenter(Colorate.Vertical(Colors.yellow_to_red, Add.Add(Banner2, Banner1, center=True), 2)))
 
 def sendView():
-    proxy         = {f'{proxyType}': f'{proxyType}://{choice(proxyList)}'}
+    proxies       = None
+    if proxyList:
+        proxies = {f'{proxyType}': f'{proxyType}://{choice(proxyList)}'}
     platform      = choice(Platforms)
     osVersion     = randint(1, 12)
     DeviceType    = choice(DeviceTypes)
@@ -67,7 +86,7 @@ def sendView():
     data          = f"item_id={itemID}&play_delta=1"
 
     try:
-        req = r.post(URI, headers=headers, data=data, proxies=proxy, timeout=5, verify=False)
+        req = r.post(URI, headers=headers, data=data, proxies=proxies, timeout=REQUEST_TIMEOUT, verify=False)
         return True
     except:
         return False
@@ -88,7 +107,10 @@ def sendShare():
     data = f"item_id={itemID}&share_delta=1"
 
     try:
-        req = r.post(URI, headers=headers, data=data, verify=False)
+        proxies = None
+        if proxyList:
+            proxies = {f'{proxyType}': f'{proxyType}://{choice(proxyList)}'}
+        req = r.post(URI, headers=headers, data=data, proxies=proxies, timeout=REQUEST_TIMEOUT, verify=False)
         return True
     except:
         return False
@@ -131,6 +153,7 @@ def progressThread():
         print(f"{sentRequests} sent requests! {elapsedReq} requests/second.", end="\r")
 
 if (__name__ == "__main__"):
+    from pystyle import Colorate, Colors, Write, Add, Center
     clearConsole(); Banner()
     VideoURI     = str(Write.Input("Video Link > ", Colors.yellow_to_red, interval=0.0001))
     amount       = int(Write.Input("Amount (0=inf) > ", Colors.yellow_to_red, interval=0.0001))

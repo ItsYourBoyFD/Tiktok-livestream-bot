@@ -26,13 +26,9 @@ def readFile(filename,method):
         return content
 
 def readProxiesFile():
-    restartTry = True
     path = os.path.join("Data", "Proxies.txt")
-    while restartTry:
-        try:
-            proxies = readFile(path, 'r')
-            restartTry = False
-            return proxies
-        except:
-            print("Failed to open Proxies.txt")
-            restartTry = True
+    try:
+        return readFile(path, 'r')
+    except Exception:
+        print("Warning: Proxies.txt not found. Continuing without proxies.")
+        return []
