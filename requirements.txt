@@ -1,0 +1,16 @@
+# Core dependencies for TikTok Mass Botting
+requests>=2.31.0
+urllib3>=2.0.0
+pystyle==1.5
+
+# Performance optimizations
+# These packages can improve performance but are optional
+# Uncomment if you want to install them:
+# aiohttp>=3.8.0  # For async HTTP requests (future enhancement)
+# uvloop>=0.17.0  # Faster event loop (Unix only)
+# orjson>=3.8.0   # Faster JSON parsing
+
+# Development dependencies (optional)
+# pytest>=7.0.0
+# black>=23.0.0
+# flake8>=6.0.0
