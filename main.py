@@ -8,7 +8,8 @@ from urllib.parse import urlparse
 from http import cookiejar
 
 import requests
-from pystyle import Colorate, Colors, Write, Add, Center
+# Lazily import heavy UI deps to reduce import-time overhead
+Colorate = Colors = Write = Add = Center = None
 
 from Data.UserAgent import UserAgent
 from Data.Lists import DeviceTypes, Platforms, Channel, ApiDomain
@@ -22,12 +23,34 @@ class BlockCookies(cookiejar.CookiePolicy):
 requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 ssl._create_default_https_context = ssl._create_unverified_context
 r                                 = requests.Session()
+# Configure connection pooling and defaults for better throughput
+r.verify                           = False
+r.trust_env                        = True  # allow env proxies if present
+try:
+    from requests.adapters import HTTPAdapter
+    from urllib3.util.retry import Retry
+    # Increase pool connections and mount adapters for http/https
+    adapter = HTTPAdapter(pool_connections=100, pool_maxsize=100,
+                          max_retries=Retry(total=0, connect=0, read=0, redirect=0, backoff_factor=0))
+    r.mount('http://', adapter)
+    r.mount('https://', adapter)
+except Exception:
+    # If adapter import fails, continue with default session
+    pass
 countQueue                        = queue.Queue()
 sentRequests                      = 0
-completed                         = False
+stopEvent                         = threading.Event()
 
 r.cookies.set_policy(BlockCookies())
+def _ensure_styles_imported():
+    global Colorate, Colors, Write, Add, Center
+    if Colorate is None:
+        from pystyle import Colorate as _Colorate, Colors as _Colors, Write as _Write, Add as _Add, Center as _Center
+        Colorate, Colors, Write, Add, Center = _Colorate, _Colors, _Write, _Add, _Center
+
+
 def Banner():
+    _ensure_styles_imported()
     clearConsole()
     Banner1 = r"""
 ╔╦╗  ╦  ╦╔═  ╔═╗  ╦ ╦  ╔═╗  ╦═╗  ╔═╗
@@ -67,7 +90,7 @@ def sendView():
     data          = f"item_id={itemID}&play_delta=1"
 
     try:
-        req = r.post(URI, headers=headers, data=data, proxies=proxy, timeout=5, verify=False)
+        req = r.post(URI, headers=headers, data=data, proxies=proxy, timeout=5)
         return True
     except:
         return False
@@ -87,8 +110,9 @@ def sendShare():
     URI = f"https://{apiDomain}/aweme/v1/aweme/stats/?channel={channelLol}&device_type={DeviceType}&device_id={Device_ID}&os_version={osVersion}&version_code=220400&app_name={appName}&device_platform={platform}&aid=1988"
     data = f"item_id={itemID}&share_delta=1"
 
+    proxy = {f'{proxyType}': f'{proxyType}://{choice(proxyList)}'}
     try:
-        req = r.post(URI, headers=headers, data=data, verify=False)
+        req = r.post(URI, headers=headers, data=data, proxies=proxy, timeout=5)
         return True
     except:
         return False
@@ -104,31 +128,36 @@ def clearURL(link):
         return UrlParsed.path.split("/")[3]
 
 def proccessThread(sendProccess):
-    while not completed:
+    while not stopEvent.is_set():
         if sendProccess():
             countQueue.put(1)
 
 def countThread():
-    global sentRequests, completed
-    while True:
+    global sentRequests
+    while not stopEvent.is_set():
         countQueue.get()
         sentRequests += 1
         if amount > 0:
             if sentRequests >= amount:
-                completed = True
+                stopEvent.set()
 
 def progressThread():
-    while True:
+    last_print = 0.0
+    while not stopEvent.is_set():
         start = time.time()
         startReq = sentRequests
-        time.sleep(1)
+        time.sleep(0.5)
         end = time.time()
         endReq = sentRequests
 
         elapsed = end - start
         elapsedReq = endReq - startReq
-
-        print(f"{sentRequests} sent requests! {elapsedReq} requests/second.", end="\r")
+        now = time.time()
+        if now - last_print >= 0.5:
+            print(f"{sentRequests} sent requests! {elapsedReq/elapsed if elapsed>0 else 0:.2f} req/s", end="\r")
+            last_print = now
+    # finalize line so the next print starts on new line
+    print("")
 
 if (__name__ == "__main__"):
     clearConsole(); Banner()
@@ -163,8 +192,17 @@ if (__name__ == "__main__"):
     else:
         print(f"Error {sendType}")
 
-    threading.Thread(target=countThread).start()
-    threading.Thread(target=progressThread).start()
+    threading.Thread(target=countThread, daemon=True).start()
+    threading.Thread(target=progressThread, daemon=True).start()
 
+    workers = []
     for n in range(nThreads):
-        threading.Thread(target=proccessThread, args=(sendProcess,)).start()
+        t = threading.Thread(target=proccessThread, args=(sendProcess,), daemon=True)
+        t.start()
+        workers.append(t)
+    # Wait until stopEvent is set (desired amount reached) then exit
+    try:
+        while not stopEvent.is_set():
+            time.sleep(0.2)
+    except KeyboardInterrupt:
+        stopEvent.set()

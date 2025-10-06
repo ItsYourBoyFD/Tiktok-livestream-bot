@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, time
 
 def clearConsole():
     if os.name == 'posix':
@@ -35,4 +35,6 @@ def readProxiesFile():
             return proxies
         except:
             print("Failed to open Proxies.txt")
+            # Avoid busy CPU spin if the file is temporarily unavailable
+            time.sleep(1)
             restartTry = True
