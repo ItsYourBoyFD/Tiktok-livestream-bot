@@ -1,0 +1,10 @@
+# Sample proxy list - Replace with your own proxies
+# Format: IP:PORT
+127.0.0.1:8080
+127.0.0.1:3128
+127.0.0.1:1080
+# Add your proxy servers here
+# Example:
+# 192.168.1.100:8080
+# proxy.example.com:3128
+# socks5://proxy.example.com:1080
