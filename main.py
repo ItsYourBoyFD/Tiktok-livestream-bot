@@ -53,7 +53,7 @@ def create_optimized_session():
     retry_strategy = Retry(
         total=3,
         status_forcelist=[429, 500, 502, 503, 504],
-        method_whitelist=["HEAD", "GET", "POST"],
+        allowed_methods=["HEAD", "GET", "POST"],  # Updated parameter name
         backoff_factor=0.1
     )
     

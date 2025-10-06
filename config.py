@@ -117,6 +117,9 @@ class AppConfig:
     # Export settings
     auto_export_performance_report: bool = True
     performance_report_filename: str = "performance_report.json"
+    
+    # Performance monitoring
+    enable_performance_monitoring: bool = True
 
 # Global configuration instances
 PERFORMANCE = PerformanceConfig()
