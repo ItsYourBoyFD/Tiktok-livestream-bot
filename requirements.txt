@@ -1,0 +1,11 @@
+# Core dependencies
+requests>=2.31.0
+urllib3>=2.0.0
+pystyle==1.5
+
+# Performance and monitoring dependencies
+psutil>=5.9.0
+concurrent-futures>=3.1.1
+
+# Optional: For better performance monitoring
+memory-profiler>=0.61.0
