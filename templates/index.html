@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Bot - Web Interface</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <h1>💎 TikTok Mass Bot</h1>
+                <p class="subtitle">Professional Web Interface</p>
+            </div>
+            <div class="status-badge" id="connectionStatus">
+                <span class="dot"></span>
+                <span>Connecting...</span>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Control Panel -->
+            <div class="card control-panel">
+                <h2>🎮 Bot Configuration</h2>
+                
+                <div class="form-group">
+                    <label for="videoUrl">
+                        <span class="label-icon">🔗</span>
+                        TikTok Video URL
+                    </label>
+                    <input type="text" id="videoUrl" placeholder="https://www.tiktok.com/@username/video/123456789" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="amount">
+                            <span class="label-icon">🎯</span>
+                            Amount (0 = unlimited)
+                        </label>
+                        <input type="number" id="amount" value="1000" min="0" max="1000000">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="threads">
+                            <span class="label-icon">⚡</span>
+                            Threads
+                        </label>
+                        <input type="number" id="threads" value="100" min="1" max="10000">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sendType">
+                            <span class="label-icon">📊</span>
+                            Action Type
+                        </label>
+                        <select id="sendType">
+                            <option value="view">👁️ Views</option>
+                            <option value="share">🔄 Shares</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="proxyType">
+                            <span class="label-icon">🌐</span>
+                            Proxy Type
+                        </label>
+                        <select id="proxyType">
+                            <option value="http">HTTP</option>
+                            <option value="socks4">SOCKS4</option>
+                            <option value="socks5">SOCKS5</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="proxy-info" id="proxyInfo">
+                    <span class="label-icon">📡</span>
+                    <span id="proxyCount">Loading proxy count...</span>
+                </div>
+
+                <div class="button-group">
+                    <button id="startBtn" class="btn btn-primary">
+                        <span class="btn-icon">🚀</span>
+                        Start Bot
+                    </button>
+                    <button id="stopBtn" class="btn btn-danger" disabled>
+                        <span class="btn-icon">⛔</span>
+                        Stop Bot
+                    </button>
+                </div>
+            </div>
+
+            <!-- Live Statistics -->
+            <div class="card stats-panel">
+                <h2>📈 Live Statistics</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-icon">📤</div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="sentRequests">0</div>
+                            <div class="stat-label">Sent Requests</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-box">
+                        <div class="stat-icon">⚡</div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="requestsPerSec">0</div>
+                            <div class="stat-label">Requests/sec</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-box">
+                        <div class="stat-icon">⏱️</div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="elapsed">0s</div>
+                            <div class="stat-label">Elapsed Time</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-box">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="progress">0%</div>
+                            <div class="stat-label">Progress</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+
+                <div class="status-message" id="statusMessage">
+                    Ready to start
+                </div>
+            </div>
+
+            <!-- Active Tasks -->
+            <div class="card tasks-panel">
+                <h2>📋 Task History</h2>
+                <div id="tasksList" class="tasks-list">
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <p>No tasks yet. Start a bot to see it here!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>💎 TikTok Mass Bot v2.0 | Optimized for Performance | <a href="https://discord.gg/devcenter" target="_blank">discord.gg/devcenter</a></p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

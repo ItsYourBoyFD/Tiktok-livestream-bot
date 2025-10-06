@@ -1,0 +1,20 @@
+[Unit]
+Description=TikTok Bot Web Application
+After=network.target
+
+[Service]
+Type=notify
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/tiktok-bot
+Environment="PATH=/opt/tiktok-bot/venv/bin"
+ExecStart=/opt/tiktok-bot/venv/bin/gunicorn -c gunicorn_config.py web_app:app
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
