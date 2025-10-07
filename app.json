@@ -1,0 +1,29 @@
+{
+  "name": "TikTok Bot Web Interface",
+  "description": "Professional TikTok bot with modern web interface",
+  "repository": "https://github.com/yourusername/tiktok-bot",
+  "logo": "https://raw.githubusercontent.com/yourusername/tiktok-bot/main/logo.png",
+  "keywords": ["tiktok", "bot", "automation", "flask", "websocket"],
+  "image": "heroku/python",
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ],
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "free"
+    }
+  },
+  "env": {
+    "FLASK_ENV": {
+      "description": "Flask environment",
+      "value": "production"
+    },
+    "PYTHONUNBUFFERED": {
+      "description": "Disable Python output buffering",
+      "value": "1"
+    }
+  }
+}
